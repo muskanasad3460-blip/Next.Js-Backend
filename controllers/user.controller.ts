@@ -8,24 +8,27 @@ const service = new AuthService();
 const userService = new UserService();
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
-  console.log({ user: req.user });
+  const user = await userService.getUserById(req.user?.id!);
   res.json({
-    // user, // ✅ wrap inside object
+    success: true,
+    user,
   });
 });
 
-export const updateProfile = asyncHandler(async (req: any, res: Response) => {
-  const userId = req.user.id;
+export const updateProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
 
-  const { name, email, avatar } = req.body;
+    const { name, email, avatar } = req.body;
 
-  const updated = await service.updateProfile(userId, {
-    name,
-    email,
-    avatar,
-  });
-  res.json({ success: true, user: updated });
-});
+    const updated = await service.updateProfile(userId, {
+      name,
+      email,
+      avatar,
+    });
+    res.json({ success: true, user: updated });
+  }
+);
 // export const updateUser = async (req: Request, res: Response) => {
 //   const userId = (req as any).user.id;
 

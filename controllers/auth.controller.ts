@@ -124,7 +124,7 @@ export const loginAdmin = asyncHandler(async (req, res) => {
   const data = await service.loginAdmin(email, password);
 
   // ✅ SET COOKIE (IMPORTANT FIX)
-  res.cookie("jwt", `Bearer ${data.token}`, {
+  res.cookie("jwt", data.token, {
     httpOnly: true,
     sameSite: true,
     signed: true,
