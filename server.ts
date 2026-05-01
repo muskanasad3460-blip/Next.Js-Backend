@@ -22,11 +22,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(
-  cookieParser(
-    "98c638c3fef79ddc2dda332fba9c3d12c4431033599e5084afb64c0c1dadeace8ff5f87bb8af978284ac558b866a6b1a79488c5b8a3cf6320bea24c0e8f3c830"
-  )
-);
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(passport.initialize());
 
