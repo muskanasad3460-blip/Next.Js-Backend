@@ -33,19 +33,42 @@ model Admin {
 model Category {
   id        String    @id @default(uuid())
   name      String    @unique
-  products  Product[] // 🔗 relation
+  icon      String
   createdAt DateTime  @default(now())
+
+  products  Product[]
 }
 
 model Product {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
+
   name        String
-  price       Float
+  price       String
+  oldPrice    String?
+  discount    String?
+
   description String?
 
-  // ✅ RELATION
-  categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id])
+  brand       String?
+  color       String?
 
-  createdAt   DateTime  @default(now())
+  weight      Int?
+  length      Int?
+  width       Int?
+
+  rating      Float?
+  reviews     Int?
+
+  badge       String?
+
+  image       String?
+
+  isFlashSale Boolean @default(false)
+  isBestSale  Boolean @default(false)
+  isExplore   Boolean @default(false)
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt   DateTime @default(now())
 }

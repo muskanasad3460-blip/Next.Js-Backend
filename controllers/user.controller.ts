@@ -29,22 +29,6 @@ export const updateProfile = asyncHandler(
     res.json({ success: true, user: updated });
   }
 );
-// export const updateUser = async (req: Request, res: Response) => {
-//   const userId = (req as any).user.id;
-
-//   const { name, email } = req.body;
-
-//   const updated = await prisma.user.update({
-//     where: { id: userId },
-//     data: {
-//       name,
-//       email,
-//       image: req.file ? "uploaded-url-here" : undefined,
-//     },
-//   });
-
-//   res.json({ user: updated });
-// };
 
 export const updateUser = async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
@@ -60,6 +44,6 @@ export const updateUser = async (req: Request, res: Response) => {
   });
 
   return res.json({
-    user: updated, // ✅ MUST return user
+    user: updated,
   });
 };
