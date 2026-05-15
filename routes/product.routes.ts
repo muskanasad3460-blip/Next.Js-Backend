@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
   createProduct,
   deleteProduct,
@@ -9,34 +8,49 @@ import {
   getFlashSaleProducts,
   getBestSellingProducts,
   getExploreProducts,
-  seedProducts,
+  // seedProducts,
 } from "../controllers/product.controller";
 
 import { upload } from "../middleware/upload";
 
 const router = express.Router();
 
-// NORMAL CRUD
-router.post("/", upload.single("image"), createProduct);
+// ======================
+// CREATE PRODUCT
+// ======================
+// router.post("/", upload.single("image"), createProduct); // ======================
+router.post("/", upload.array("images", 10), createProduct);
 
+router.put("/:id", upload.array("images", 10), updateProduct);
+// GET ALL PRODUCTS
+// ======================
 router.get("/", getProducts);
 
-router.get("/:id", getProduct);
-
-router.put("/:id", upload.single("image"), updateProduct);
-
-router.delete("/:id", deleteProduct);
-
-// FLASH SALE
+// ======================
+// SPECIAL ROUTES (IMPORTANT: must be BEFORE /:id)
+// ======================
 router.get("/flash-sale", getFlashSaleProducts);
-
-// BEST SELLING
 router.get("/best-selling", getBestSellingProducts);
-
-// EXPLORE
 router.get("/explore", getExploreProducts);
 
+// ======================
 // SEED
-router.post("/seed", seedProducts);
+// ======================
+// router.post("/seed", seedProducts);
+
+// ======================
+// SINGLE PRODUCT (MUST BE AFTER SPECIAL ROUTES)
+// ======================
+router.get("/:id", getProduct);
+
+// ======================
+// UPDATE PRODUCT
+// ======================
+// router.put("/:id", upload.single("image"), updateProduct);
+
+// ======================
+// DELETE PRODUCT
+// ======================
+router.delete("/:id", deleteProduct);
 
 export default router;

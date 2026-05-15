@@ -5,12 +5,9 @@ const emptyToUndefined = (val: any) => (val === "" ? undefined : val);
 export const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
 
-  price: z
-    .string()
-    .min(1, "Price is required")
-    .refine((val) => !isNaN(Number(val)), "Price must be a number"),
+  price: z.coerce.number().min(1, "Price is required"),
 
-  oldPrice: z.preprocess(emptyToUndefined, z.string().optional()),
+  oldPrice: z.preprocess(emptyToUndefined, z.coerce.number().optional()),
 
   discount: z.preprocess(emptyToUndefined, z.string().optional()),
 
@@ -22,21 +19,17 @@ export const productSchema = z.object({
 
   color: z.preprocess(emptyToUndefined, z.string().optional()),
 
-  weight: z.preprocess(emptyToUndefined, z.string().optional()),
+  weight: z.preprocess(emptyToUndefined, z.coerce.number().optional()),
 
-  length: z.preprocess(emptyToUndefined, z.string().optional()),
+  length: z.preprocess(emptyToUndefined, z.coerce.number().optional()),
 
-  width: z.preprocess(emptyToUndefined, z.string().optional()),
+  width: z.preprocess(emptyToUndefined, z.coerce.number().optional()),
 
-  rating: z.preprocess(emptyToUndefined, z.string().optional()),
+  rating: z.preprocess(emptyToUndefined, z.coerce.number().optional()),
 
-  reviews: z.preprocess(emptyToUndefined, z.string().optional()),
+  reviews: z.preprocess(emptyToUndefined, z.coerce.number().optional()),
 
   badge: z.preprocess(emptyToUndefined, z.string().optional()),
 
-  isFlashSale: z.boolean().optional(),
-
-  isBestSale: z.boolean().optional(),
-
-  isExplore: z.boolean().optional(),
+  productType: z.string().optional(),
 });
