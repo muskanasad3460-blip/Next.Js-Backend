@@ -1,30 +1,57 @@
-import passport from "passport";
-import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
-import JwtCookieComboStrategy from "passport-jwt-cookiecombo";
+// import passport from "passport";
+// import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+// import JwtCookieComboStrategy from "passport-jwt-cookiecombo";
 
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 
-dotenv.config(); // 👈 IMPORTANT SAFETY
+// dotenv.config(); // 👈 IMPORTANT SAFETY
 
-const jwtSecret = process.env.JWT_SECRET;
+// const jwtSecret = process.env.JWT_SECRET;
 
-if (!jwtSecret) {
-  throw new Error("JWT_SECRET is missing in .env file");
-}
+// if (!jwtSecret) {
+//   throw new Error("JWT_SECRET is missing in .env file");
+// }
 
-passport.use(
-  new JwtCookieComboStrategy(
-    {
-      secretOrPublicKey: jwtSecret,
-    },
-    async (payload: any, done: any) => {
-      console.log({ payload, done });
-      return done(null, payload);
-    }
-  )
-);
+// passport.use(
+//   new JwtCookieComboStrategy(
+//     {
+//       secretOrPublicKey: jwtSecret,
+//     },
+//     async (payload: any, done: any) => {
+//       console.log({ payload, done });
+//       return done(null, payload);
+//     }
+//   )
+// );
 
-export default passport;
+// export default passport;
+// import passport from "passport";
+
+// import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// passport.use(
+//   new JwtStrategy(
+//     {
+//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+
+//       secretOrKey: process.env.JWT_SECRET!,
+//     },
+
+//     async (payload, done) => {
+//       try {
+//         return done(null, payload);
+//       } catch (error) {
+//         return done(error, false);
+//       }
+//     }
+//   )
+// );
+
+// export default passport;
 
 // import passport from "passport";
 // import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";

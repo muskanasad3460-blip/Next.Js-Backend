@@ -1,17 +1,41 @@
 import express from "express";
-import { loginAdmin, registerAdmin } from "../controllers/auth.controller";
+
+import {
+  login,
+  loginAdmin,
+  registerAdmin,
+  sendOtp,
+  verifyOtp,
+} from "../controllers/auth.controller";
+
 import { protect } from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/admin.middleware";
 
 const router = express.Router();
 
-router.get("/admin/dashboard", protect, isAdmin, (req, res) => {
-  res.json({ message: "Welcome admin dashboard" });
-});
-// router.post("/register", validate(registerSchema), register);
+// ==========================
+// USER ROUTES
+// ==========================
+router.post("/send-otp", sendOtp);
 
-// router.post("/login", validate(loginSchema), login);
+router.post("/verify-otp", verifyOtp);
+
+router.post("/login", login);
+
+// ==========================
+// ADMIN ROUTES
+// ==========================
 router.post("/admin/register", registerAdmin);
+
 router.post("/admin/login", loginAdmin);
+
+// ==========================
+// ADMIN PROTECTED
+// ==========================
+router.get("/admin/dashboard", protect, isAdmin, (req, res) => {
+  res.json({
+    message: "Welcome admin dashboard",
+  });
+});
 
 export default router;

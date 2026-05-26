@@ -1,0 +1,20 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `createdAt` on the `Address` table. All the data in the column will be lost.
+  - You are about to drop the column `updatedAt` on the `Address` table. All the data in the column will be lost.
+  - A unique constraint covering the columns `[userId]` on the table `Address` will be added. If there are existing duplicate values, this will fail.
+
+*/
+-- DropForeignKey
+ALTER TABLE "Address" DROP CONSTRAINT "Address_userId_fkey";
+
+-- AlterTable
+ALTER TABLE "Address" DROP COLUMN "createdAt",
+DROP COLUMN "updatedAt";
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Address_userId_key" ON "Address"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

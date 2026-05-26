@@ -1,15 +1,15 @@
 import express from "express";
+import { protect } from "../middleware/auth.middleware";
+import { upload } from "../middleware/upload";
 import {
   getProfile,
   updateProfile,
-  updateUser,
+  //   updateUser,
 } from "../controllers/user.controller";
-import { protect } from "../middleware/auth.middleware";
-import { upload } from "../middleware/upload";
+
 const router = express.Router();
 
 router.get("/me", protect, getProfile);
-router.put("/update", protect, upload.single("image"), updateUser);
-router.post("/update", protect, updateProfile);
+router.put("/profile", protect, upload.single("avatar"), updateProfile);
 
 export default router;

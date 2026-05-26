@@ -1,139 +1,457 @@
-import asyncHandler from "express-async-handler";
-import { Request, Response } from "express";
-import { AuthService } from "../services/auth.service";
+// import asyncHandler from "express-async-handler";
+// import { Request, Response } from "express";
+// import { AuthService } from "../services/auth.service";
+// import nodemailer from "nodemailer";
+// import jwt from "jsonwebtoken";
+// import { prisma } from "../utils/prisma";
 
-const service = new AuthService();
+// const service = new AuthService();
 
-// type RegisterBody = {
-//   name: string;
-//   email: string;
-//   password: string;
-// };
-// type LoginBody = {
-//   email: string;
-//   password: string;
-// };
-
-// export const register = asyncHandler(
-//   async (req: Request<{}, {}, RegisterBody>, res: Response) => {
-//     const { name, email, password } = req.body;
-
-//     const user = await service.registerUser(name, email, password);
-
-//     res.status(200).json({
-//       success: true,
-//       data: user,
-//     });
+// /* =========================
+//    OTP STORAGE (temporary)
+// ========================= */
+// const otpStore = new Map<
+//   string,
+//   {
+//     otp: string;
+//     name: string;
+//     password: string;
+//     expires: number;
 //   }
-// );
+// >();
 
-// export const login = asyncHandler(
-//   async (req: Request<{}, {}, LoginBody>, res: Response) => {
-//     const { email, password } = req.body;
+// /* =========================
+//    EMAIL CONFIG (Nodemailer)
+// ========================= */
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
-//     const data = await service.loginUser(email, password);
+// /* =========================
+//    SEND OTP (REGISTER)
+// ========================= */
+// export const sendOtp = asyncHandler(async (req: Request, res: Response) => {
+//   const { name, email, password } = req.body;
+//   const existingUser = await prisma.user.findUnique({
+//     where: { email },
+//   });
 
-//     res.cookie("token", data.token, {
-//       httpOnly: true,
+//   if (existingUser) {
+//     res.status(400).json({
+//       success: false,
+//       message: "User already exists",
 //     });
 
-//     res.json(data);
+//     return;
 //   }
-// );
 
+//   if (!name || !email || !password) {
+//     res.status(400).json({
+//       success: false,
+//       message: "Name, email, password required",
+//     });
+//     return;
+//   }
+
+//   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+//   otpStore.set(email, {
+//     otp,
+//     name,
+//     password,
+//     expires: Date.now() + 5 * 60 * 1000,
+//   });
+
+//   await transporter.sendMail({
+//     from: process.env.EMAIL_USER,
+//     to: email,
+//     subject: "Your OTP Code",
+//     html: `
+//       <div style="font-family:sans-serif">
+//         <h2>OTP Verification</h2>
+//         <h1>${otp}</h1>
+//         <p>This OTP is valid for 5 minutes.</p>
+//       </div>
+//     `,
+//   });
+
+//   res.status(200).json({
+//     success: true,
+//     message: "OTP sent successfully",
+//   });
+// });
+
+// /* =========================
+//    VERIFY OTP + CREATE USER
+// ========================= */
+// export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
+//   const { email, otp } = req.body;
+
+//   const data = otpStore.get(email);
+
+//   if (!data) {
+//     res.status(400).json({
+//       success: false,
+//       message: "OTP not found",
+//     });
+//     return;
+//   }
+
+//   if (Date.now() > data.expires) {
+//     otpStore.delete(email);
+
+//     res.status(400).json({
+//       success: false,
+//       message: "OTP expired",
+//     });
+//     return;
+//   }
+
+//   if (data.otp !== otp) {
+//     res.status(400).json({
+//       message: "Invalid OTP",
+//     });
+//     return;
+//   }
+
+//   // CREATE USER
+//   const user = await service.registerUser(data.name, email, data.password);
+
+//   otpStore.delete(email);
+
+//   // CREATE TOKEN
+//   const token = jwt.sign(
+//     {
+//       id: user.id,
+//       email: user.email,
+//       type: "user",
+//     },
+//     process.env.JWT_SECRET!,
+//     { expiresIn: "1d" }
+//   );
+
+//   res.status(201).json({
+//     success: true,
+//     user,
+//     token,
+//   });
+// });
+
+// /* =========================
+//    USER LOGIN (optional normal login)
+// ========================= */
+// export const login = asyncHandler(async (req: Request, res: Response) => {
+//   const { email, password } = req.body;
+
+//   const data = await service.loginUser(email, password);
+
+//   const token = jwt.sign(
+//     {
+//       id: data.user.id,
+//       email: data.user.email,
+//       type: "user",
+//     },
+//     process.env.JWT_SECRET!,
+//     { expiresIn: "1d" }
+//   );
+
+//   res.cookie("jwt", token, {
+//     httpOnly: true,
+//     sameSite: "lax",
+//   });
+
+//   res.status(200).json({
+//     success: true,
+//     user: data.user,
+//     token,
+//   });
+// });
+
+// /* =========================
+//    ADMIN REGISTER
+// ========================= */
 // export const registerAdmin = asyncHandler(
 //   async (req: Request, res: Response) => {
 //     const { name, email, password } = req.body;
 
+//     if (!name || !email || !password) {
+//       res.status(400).json({
+//         success: false,
+//         message: "OTP not found",
+//       });
+//       return;
+//     }
+
 //     const admin = await service.registerAdmin(name, email, password);
 
-//     res.json({
+//     res.status(201).json({
 //       success: true,
 //       admin,
 //     });
 //   }
 // );
 
-// export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
-//   const { email, password } = req.body;
-
-//   const data = await service.loginAdmin(email, password);
-//   res.json(data);
-// });
-
-// import asyncHandler from "express-async-handler";
-// import { Request, Response } from "express";
-// import { AuthService } from "../services/auth.service";
-
-// const service = new AuthService();
-
-// /* ======================
-//    ADMIN REGISTER
-// ====================== */
-// export const registerAdmin = asyncHandler(
-//   async (req: Request, res: Response) => {
-//     const { name, email, password } = req.body;
-
-//     const admin = await service.registerAdmin(name, email, password);
-
-//     res.status(201).json({
-//       success: true,
-//       data: admin,
-//     });
-//   }
-// );
-
-// /* ======================
+// /* =========================
 //    ADMIN LOGIN
-// ====================== */
+// ========================= */
 // export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
 //   const { email, password } = req.body;
 
 //   const data = await service.loginAdmin(email, password);
 
-//   res.cookie("token", data.token, {
+//   const token = jwt.sign(
+//     {
+//       id: data.admin.id,
+//       email: data.admin.email,
+//       type: "admin",
+//     },
+//     process.env.JWT_SECRET!,
+//     { expiresIn: "1d" }
+//   );
+
+//   res.cookie("jwt", token, {
 //     httpOnly: true,
-//     sameSite: "lax",
-//     secure: false, // set true in production HTTPS
+//     sameSite: "strict",
+//     secure: false,
 //   });
 
 //   res.status(200).json({
 //     success: true,
-//     ...data,
+//     user: data.admin,
+//     token,
 //   });
 // });
 
-export const registerAdmin = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+import asyncHandler from "express-async-handler";
+import { Request, Response } from "express";
+import { AuthService } from "../services/auth.service";
+import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
+import { prisma } from "../utils/prisma";
 
-  const admin = await service.registerAdmin(name, email, password);
+const service = new AuthService();
 
-  res.json({ success: true, admin });
+/* =========================
+   OTP STORE
+========================= */
+const otpStore = new Map<
+  string,
+  {
+    otp: string;
+    name: string;
+    password: string;
+    expires: number;
+  }
+>();
+
+/* =========================
+   EMAIL CONFIG
+========================= */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
-// export const loginAdmin = asyncHandler(async (req, res) => {
-//   const { email, password } = req.body;
+/* =========================
+   SEND OTP
+========================= */
+export const sendOtp = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { name, email, password } = req.body;
 
-//   const data = await service.loginAdmin(email, password);
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
 
-//   res.json(data);
-// });
-export const loginAdmin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+    if (existingUser) {
+      res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+      return;
+    }
 
-  const data = await service.loginAdmin(email, password);
+    if (!name || !email || !password) {
+      res.status(400).json({
+        success: false,
+        message: "Name, email, password required",
+      });
+      return;
+    }
 
-  // ✅ SET COOKIE (IMPORTANT FIX)
-  res.cookie("jwt", data.token, {
-    httpOnly: true,
-    sameSite: true,
-    signed: true,
-    secure: true,
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
-  });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  res.status(200).json({
-    success: true,
-    user: data.admin,
-  });
-});
+    otpStore.set(email, {
+      otp,
+      name,
+      password,
+      expires: Date.now() + 5 * 60 * 1000,
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+      <div>
+        <h2>OTP Verification</h2>
+        <h1>${otp}</h1>
+        <p>Valid for 5 minutes</p>
+      </div>
+    `,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  }
+);
+
+/* =========================
+   VERIFY OTP
+========================= */
+export const verifyOtp = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { email, otp } = req.body;
+
+    const data = otpStore.get(email);
+
+    if (!data) {
+      res.status(400).json({
+        success: false,
+        message: "OTP not found",
+      });
+      return;
+    }
+
+    if (Date.now() > data.expires) {
+      otpStore.delete(email);
+
+      res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      });
+      return;
+    }
+
+    if (data.otp !== otp) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+      return;
+    }
+
+    const user = await service.registerUser(data.name, email, data.password);
+
+    otpStore.delete(email);
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        type: "user",
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({
+      success: true,
+      user,
+      token,
+    });
+  }
+);
+
+/* =========================
+   LOGIN USER
+========================= */
+export const login = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { email, password } = req.body;
+
+    const data = await service.loginUser(email, password);
+
+    const token = jwt.sign(
+      {
+        id: data.user.id,
+        email: data.user.email,
+        type: "user",
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      user: data.user,
+      token,
+    });
+
+    return;
+  }
+);
+
+/* =========================
+   ADMIN REGISTER
+========================= */
+export const registerAdmin = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      res.status(400).json({
+        success: false,
+        message: "Name, email, password required",
+      });
+      return;
+    }
+
+    const admin = await service.registerAdmin(name, email, password);
+
+    res.status(201).json({
+      success: true,
+      admin,
+    });
+
+    return;
+  }
+);
+
+/* =========================
+   ADMIN LOGIN
+========================= */
+export const loginAdmin = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { email, password } = req.body;
+
+    const data = await service.loginAdmin(email, password);
+
+    const token = jwt.sign(
+      {
+        id: data.admin.id,
+        email: data.admin.email,
+        type: "admin",
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      user: data.admin,
+      token,
+    });
+
+    return;
+  }
+);

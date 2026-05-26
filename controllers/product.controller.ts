@@ -66,87 +66,6 @@ export const getExploreProducts = asyncHandler(
 // CREATE PRODUCT
 // ======================
 
-// export const createProduct = asyncHandler(
-//   async (req: Request, res: Response): Promise<void> => {
-//     try {
-//       // ✅ SINGLE FILE ONLY
-//       const file = req.file as Express.Multer.File | undefined;
-
-//       const result = productSchema.safeParse(req.body);
-
-//       if (!result.success) {
-//         res.status(400).json({
-//           success: false,
-//           errors: result.error.flatten().fieldErrors,
-//         });
-//         return;
-//       }
-
-//       const {
-//         name,
-//         price,
-//         oldPrice,
-//         discount,
-//         categoryId,
-//         brand,
-//         color,
-//         weight,
-//         length,
-//         width,
-//         description,
-//         rating,
-//         reviews,
-//         badge,
-//         productType,
-//       } = result.data;
-
-//       const product = await prisma.product.create({
-//         data: {
-//           name,
-
-//           price: toNumber(price),
-//           oldPrice: oldPrice ? toNumber(oldPrice) : null,
-//           discount,
-
-//           categoryId,
-
-//           brand: brand || "",
-//           color: color || "",
-
-//           weight: toNumber(weight),
-//           length: toNumber(length),
-//           width: toNumber(width),
-
-//           rating: toNumber(rating),
-//           reviews: toNumber(reviews),
-
-//           badge: badge || "",
-
-//           isFlashSale: productType === "flash",
-//           isBestSale: productType === "best",
-//           isExplore: productType === "explore",
-
-//           description: description || "",
-
-//           // ✅ SINGLE IMAGE ONLY
-//           image: file ? `/uploads/${file.filename}` : null,
-//         },
-
-//         include: {
-//           category: true,
-//         },
-//       });
-
-//       res.status(201).json(product);
-//     } catch (error) {
-//       console.log("CREATE PRODUCT ERROR:", error);
-//       res.status(500).json({
-//         success: false,
-//         message: "Failed to create product",
-//       });
-//     }
-//   }
-// );
 export const createProduct = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
@@ -191,7 +110,7 @@ export const createProduct = asyncHandler(
 
           oldPrice: oldPrice ? toNumber(oldPrice) : null,
 
-          discount,
+          // discount,
 
           categoryId,
 
@@ -455,12 +374,15 @@ export const updateProduct = asyncHandler(
       // =========================
       if (files && files.length > 0) {
         // delete old images
-        await prisma.image.deleteMany({
+        // await prisma.image.deleteMany({
+        //   where: { productId: id },
+        // });
+        await prisma.productImage.deleteMany({
           where: { productId: id },
         });
 
         // create new images
-        await prisma.image.createMany({
+        await prisma.productImage.createMany({
           data: files.map((file) => ({
             url: `/uploads/${file.filename}`,
             productId: id,
