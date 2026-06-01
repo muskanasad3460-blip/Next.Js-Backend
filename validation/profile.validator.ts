@@ -5,7 +5,7 @@ export const profileValidator = [
     .optional()
     .isString()
     .withMessage("Name must be a string")
-    .isLength({ min: 2 })
+    .isLength({ min: 2, max: 10 })
     .withMessage("Name must be at least 2 characters"),
 
   body("email").optional().isEmail().withMessage("Invalid email format"),

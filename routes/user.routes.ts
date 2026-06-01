@@ -1,15 +1,42 @@
+// import express from "express";
+// import { protect } from "../middleware/auth.middleware";
+// import { upload } from "../middleware/upload";
+// import {
+//   getProfile,
+//   updateProfile,
+//   //   updateUser,
+// } from "../controllers/user.controller";
+
+// const router = express.Router();
+
+// router.get("/me", protect, getProfile);
+// router.put("/profile", protect, upload.single("avatar"), updateProfile);
+
+// export default router;
+
 import express from "express";
+
 import { protect } from "../middleware/auth.middleware";
 import { upload } from "../middleware/upload";
-import {
-  getProfile,
-  updateProfile,
-  //   updateUser,
-} from "../controllers/user.controller";
+import { validate } from "../middleware/validate";
+
+import { getProfile, updateProfile } from "../controllers/user.controller";
+
+import { profileValidator } from "../validation/profile.validator";
 
 const router = express.Router();
 
+// GET PROFILE
 router.get("/me", protect, getProfile);
-router.put("/profile", protect, upload.single("avatar"), updateProfile);
+
+// UPDATE PROFILE
+router.put(
+  "/profile",
+  protect,
+  upload.single("avatar"),
+  profileValidator,
+  validate,
+  updateProfile
+);
 
 export default router;
