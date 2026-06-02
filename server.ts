@@ -26,12 +26,7 @@ const app = express();
 // ✅ CORS
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "https://YOUR-FRONTEND.vercel.app",
-    ],
-    // origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001"],
     // origin: "http://localhost:3000",
     credentials: true,
   })
@@ -70,8 +65,6 @@ app.use("/api/orders", orderRoutes);
 app.use(errorHandler);
 
 // 🚀 Server
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.listen(5000, () => {
+  console.log("🚀 Server running on port 5000");
 });

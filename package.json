@@ -175,10 +175,7 @@
     "zod": "^4.3.6"
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "postinstall": "prisma generate"
+    "dev": "ts-node-dev --respawn --transpile-only server.ts"
   },
   "keywords": [],
   "author": "",
