@@ -3,26 +3,11 @@ import asyncHandler from "express-async-handler";
 import { prisma } from "../utils/prisma";
 import { productSchema } from "../validation/product.validator";
 
-//
-// SAFE NUMBER
-//
-const toNumber = (val: any, fallback = 0) => {
-  const num = Number(val);
-  return Number.isFinite(num) ? num : fallback;
-};
-
-//
-// SAFE ID
-//
 const getId = (id: string | string[] | undefined) => {
   if (!id) return "";
   return Array.isArray(id) ? id[0] : id;
 };
 
-//
-// ======================
-// FLASH SALE
-// ======================
 export const getFlashSaleProducts = asyncHandler(
   async (_req: Request, res: Response) => {
     const products = await prisma.product.findMany({
@@ -33,10 +18,6 @@ export const getFlashSaleProducts = asyncHandler(
   }
 );
 
-//
-// ======================
-// BEST SELLING
-// ======================
 export const getBestSellingProducts = asyncHandler(
   async (_req: Request, res: Response) => {
     const products = await prisma.product.findMany({
@@ -47,10 +28,6 @@ export const getBestSellingProducts = asyncHandler(
   }
 );
 
-//
-// ======================
-// EXPLORE
-// ======================
 export const getExploreProducts = asyncHandler(
   async (_req: Request, res: Response) => {
     const products = await prisma.product.findMany({
@@ -61,16 +38,9 @@ export const getExploreProducts = asyncHandler(
   }
 );
 
-//
-// ======================
-// CREATE PRODUCT
-// ======================
-
 export const createProduct = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
+  async (req: Request, res: Response) => {
     try {
-      console.log("BODY:", req.body);
-      console.log("FILES:", req.files);
       const files = req.files as Express.Multer.File[];
 
       const result = productSchema.safeParse(req.body);
@@ -78,9 +48,9 @@ export const createProduct = asyncHandler(
       if (!result.success) {
         res.status(400).json({
           success: false,
-          errors: result.error.flatten().fieldErrors,
+          message: "Validation failed",
+          errors: result.error.flatten(),
         });
-
         return;
       }
 
@@ -105,43 +75,29 @@ export const createProduct = asyncHandler(
       const product = await prisma.product.create({
         data: {
           name,
-
-          price: toNumber(price),
-
-          oldPrice: oldPrice ? toNumber(oldPrice) : null,
-
-          // discount,
+          price: Number(price),
+          oldPrice: oldPrice ? Number(oldPrice) : null,
+          discount: Number(discount),
 
           categoryId,
-
-          brand: brand || "",
-
-          color: color || "",
-
-          weight: toNumber(weight),
-
-          length: toNumber(length),
-
-          width: toNumber(width),
-
-          rating: toNumber(rating),
-
-          reviews: toNumber(reviews),
-
-          badge: badge || "",
-
-          description: description || "",
+          brand,
+          color,
+          weight: Number(weight),
+          length: Number(length),
+          width: Number(width),
+          description,
+          rating: Number(rating),
+          reviews: Number(reviews),
+          badge,
 
           isFlashSale: productType === "flash",
-
           isBestSale: productType === "best",
-
           isExplore: productType === "explore",
 
-          // MAIN IMAGE
+          // MAIN IMAGE (optional)
           image: files?.[0] ? `/uploads/${files[0].filename}` : null,
 
-          // MULTIPLE IMAGES
+          // MULTIPLE IMAGES (IMPORTANT FIX)
           images: {
             create:
               files?.map((file) => ({
@@ -159,7 +115,6 @@ export const createProduct = asyncHandler(
       res.status(201).json(product);
     } catch (error) {
       console.log(error);
-
       res.status(500).json({
         success: false,
         message: "Failed to create product",
@@ -168,48 +123,29 @@ export const createProduct = asyncHandler(
   }
 );
 
-//
-// ======================
-// GET ALL PRODUCTS
-// ======================
 export const getProducts = asyncHandler(
   async (_req: Request, res: Response) => {
     const products = await prisma.product.findMany({
-      orderBy: { createdAt: "desc" },
-      include: { category: true },
+      include: {
+        category: true,
+        images: true,
+
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
     });
 
-    res.json(products);
+    const shuffled = products.sort(() => Math.random() - 0.5);
+
+    res.json(shuffled);
   }
 );
 
-//
-// ======================
-// GET SINGLE PRODUCT
-// ======================
-// export const getProduct = asyncHandler(
-//   async (req: Request, res: Response): Promise<void> => {
-//     const id = getId(req.params.id);
-
-//     const product = await prisma.product.findUnique({
-//       where: { id },
-//       include: { category: true },
-//     });
-
-//     if (!product) {
-//       res.status(404).json({
-//         message: "Product not found",
-//       });
-//       return;
-//     }
-
-//     res.json(product);
-//   }
-// );
-//
-// ======================
-// GET SINGLE PRODUCT
-// ======================
 export const getProduct = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const id = getId(req.params.id);
@@ -237,195 +173,142 @@ export const getProduct = asyncHandler(
   }
 );
 
-//
-// ======================
-// UPDATE PRODUCT
-// ======================
-// export const updateProduct = asyncHandler(
-//   async (req: Request, res: Response): Promise<void> => {
-//     const file = req.file as Express.Multer.File | undefined;
+export const updateProduct = asyncHandler(async (req: any, res) => {
+  try {
+    const id = req.params.id as string;
 
-//     const id = getId(req.params.id);
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
 
-//     const {
-//       name,
-//       price,
-//       oldPrice,
-//       discount,
-//       description,
-//       categoryId,
-//       brand,
-//       color,
-//       weight,
-//       length,
-//       width,
-//       rating,
-//       reviews,
-//       badge,
-//       productType,
-//     } = req.body;
+    if (!existingProduct) {
+      res.status(403).json({
+        success: false,
+        message: "You can update only your own products",
+      });
+      return;
+    }
 
-//     const updated = await prisma.product.update({
-//       where: { id },
+    const files = req.files as Express.Multer.File[] | undefined;
 
-//       data: {
-//         name,
+    const {
+      name,
+      price,
+      oldPrice,
+      discount,
+      description,
+      categoryId,
+      brand,
+      color,
+      weight,
+      length,
+      width,
+      rating,
+      reviews,
+      badge,
+      productType,
+    } = req.body;
 
-//         price: toNumber(price),
-
-//         oldPrice: oldPrice ? toNumber(oldPrice) : null,
-
-//         discount,
-
-//         description,
-
-//         categoryId,
-
-//         brand,
-//         color,
-
-//         weight: toNumber(weight),
-//         length: toNumber(length),
-//         width: toNumber(width),
-
-//         rating: toNumber(rating),
-//         reviews: toNumber(reviews),
-
-//         badge,
-
-//         // ✅ ONLY ONE TRUE
-//         isFlashSale: productType === "flash",
-
-//         isBestSale: productType === "best",
-
-//         isExplore: productType === "explore",
-
-//         ...(file && {
-//           image: `/uploads/${file.filename}`,
-//         }),
-//       },
-//     });
-
-//     res.json(updated);
-//   }
-// );
-
-//
-// ======================
-// UPDATE PRODUCT
-// ======================
-export const updateProduct = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      console.log("BODY:", req.body);
-      console.log("FILES:", req.files);
-
-      const id = getId(req.params.id);
-
-      const files = req.files as Express.Multer.File[] | undefined;
-
-      const {
+    await prisma.product.update({
+      where: { id },
+      data: {
         name,
-        price,
-        oldPrice,
-        discount,
+        price: Number(price),
+        oldPrice: oldPrice ? Number(oldPrice) : null,
+        discount: Number(discount),
         description,
         categoryId,
         brand,
         color,
-        weight,
-        length,
-        width,
-        rating,
-        reviews,
+        weight: Number(weight),
+        length: Number(length),
+        width: Number(width),
+        rating: Number(rating),
+        reviews: Number(reviews),
         badge,
-        productType,
-      } = req.body;
 
-      // =========================
-      // 1. UPDATE PRODUCT DATA
-      // =========================
-      const updated = await prisma.product.update({
-        where: { id },
-        data: {
-          name,
-          price: toNumber(price),
-          oldPrice: oldPrice ? toNumber(oldPrice) : null,
-          discount,
-          description,
-          categoryId,
-          brand,
-          color,
-          weight: toNumber(weight),
-          length: toNumber(length),
-          width: toNumber(width),
-          rating: toNumber(rating),
-          reviews: toNumber(reviews),
-          badge,
+        isFlashSale: productType === "flash",
+        isBestSale: productType === "best",
+        isExplore: productType === "explore",
+      },
+    });
 
-          isFlashSale: productType === "flash",
-          isBestSale: productType === "best",
-          isExplore: productType === "explore",
+    if (files && files.length > 0) {
+      await prisma.productImage.deleteMany({
+        where: {
+          productId: id,
         },
       });
 
-      // =========================
-      // 2. UPDATE IMAGES SAFELY
-      // =========================
-      if (files && files.length > 0) {
-        // delete old images
-        // await prisma.image.deleteMany({
-        //   where: { productId: id },
-        // });
-        await prisma.productImage.deleteMany({
-          where: { productId: id },
-        });
-
-        // create new images
-        await prisma.productImage.createMany({
-          data: files.map((file) => ({
-            url: `/uploads/${file.filename}`,
-            productId: id,
-          })),
-        });
-      }
-
-      // =========================
-      // 3. RETURN UPDATED PRODUCT
-      // =========================
-      const finalProduct = await prisma.product.findUnique({
-        where: { id },
-        include: {
-          category: true,
-          images: true,
-        },
-      });
-
-      res.json(finalProduct);
-    } catch (error) {
-      console.log("UPDATE PRODUCT ERROR:", error);
-
-      res.status(500).json({
-        success: false,
-        message: "Failed to update product",
+      await prisma.productImage.createMany({
+        data: files.map((file) => ({
+          url: `/uploads/${file.filename}`,
+          productId: id,
+        })),
       });
     }
-  }
-);
 
-//
-// ======================
-// DELETE PRODUCT
-// ======================
+    const finalProduct = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        images: true,
+      },
+    });
+
+    res.json(finalProduct);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update product",
+    });
+  }
+});
+
+// export const deleteProduct = asyncHandler(
+//   async (req: Request, res: Response): Promise<void> => {
+//     const id = getId(req.params.id);
+
+//     await prisma.product.delete({
+//       where: { id },
+//     });
+
+//     res.json({
+//       message: "Product Deleted",
+//     });
+//   }
+// );
 export const deleteProduct = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
+  async (req: any, res: Response): Promise<void> => {
     const id = getId(req.params.id);
+
+    const product = await prisma.product.findFirst({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
+
+    if (!product) {
+      res.status(403).json({
+        success: false,
+        message: "You can delete only your own products",
+      });
+
+      return;
+    }
 
     await prisma.product.delete({
       where: { id },
     });
 
     res.json({
+      success: true,
       message: "Product Deleted",
     });
   }

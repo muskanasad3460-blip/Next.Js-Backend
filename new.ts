@@ -1,0 +1,117 @@
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// model User {
+//   id        String   @id @default(uuid())
+//   name      String
+//   email     String   @unique
+//   password  String
+//   avatar    String?
+
+//   phone     String?
+//   bio       String?
+
+//   addresses Address[]
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+// model Address {
+//   id         String @id @default(uuid())
+//   userId     String @unique   // ⭐ IMPORTANT FIX
+//   country    String
+//   city       String
+//   postalCode String
+//   taxId      String?
+
+//   user       User   @relation(fields: [userId], references: [id])
+// }
+
+// model Admin {
+//   id        String   @id @default(uuid())
+//   name      String
+//   email     String   @unique
+//   password  String
+//   role      String   @default("admin")
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// model Category {
+//   id        String    @id @default(uuid())
+//   name      String    @unique
+//   icon      String
+//   createdAt DateTime  @default(now())
+
+//   products  Product[]
+// }
+
+// model Product {
+//   id          String   @id @default(uuid())
+
+//   name        String
+
+//   price       Float
+//   oldPrice    Float?
+//   discount Float? @default(0)
+//   description String?
+//   stock       Int    @default(0)
+
+//   brand       String?
+//   color       String?
+
+//   weight      Int?
+//   length      Int?
+//   width       Int?
+
+//   rating      Float?
+//   reviews     Int?
+
+//   badge       String?
+
+//   image       String?
+
+//   images      ProductImage[]  // relation
+
+//   isFlashSale Boolean @default(false)
+//   isBestSale  Boolean @default(false)
+//   isExplore   Boolean @default(false)
+
+//   categoryId  String?
+//   category    Category? @relation(fields: [categoryId], references: [id])
+
+//   createdAt   DateTime @default(now())
+// }
+
+// model ProductImage {
+//   id        String   @id @default(cuid())
+//   url       String
+
+//   productId String
+//   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+// }
+// model Order {
+//   id             String   @id @default(cuid())
+//   firstName      String
+//   companyName    String?
+//   streetAddress  String
+//   apartment      String?
+//   city           String
+//   phone          String
+//   email          String
+
+//   paymentMethod  String
+//   subtotal       Float
+//   status         String   @default("Processing")
+
+//   products       Json
+
+//   createdAt      DateTime @default(now())
+// }

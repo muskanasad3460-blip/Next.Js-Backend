@@ -131,14 +131,23 @@ export class AuthService {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-
     return {
       admin: {
         id: admin.id,
+        name: admin.name,
         email: admin.email,
+        role: admin.role,
       },
       token,
     };
+
+    // return {
+    //   admin: {
+    //     id: admin.id,
+    //     email: admin.email,
+    //   },
+    //   token,
+    // };
   }
 
   // ======================

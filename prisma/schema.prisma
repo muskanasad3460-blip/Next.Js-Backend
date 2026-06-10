@@ -19,6 +19,8 @@ model User {
 
   addresses Address[]
 
+  products  Product[]   // ADD THIS
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -60,9 +62,10 @@ model Product {
 
   price       Float
   oldPrice    Float?
-  discount Float? @default(0)
+  discount    Float? @default(0)
+
   description String?
-  stock       Int    @default(0)
+  stock       Int @default(0)
 
   brand       String?
   color       String?
@@ -78,7 +81,7 @@ model Product {
 
   image       String?
 
-  images      ProductImage[]  // relation
+  images      ProductImage[]
 
   isFlashSale Boolean @default(false)
   isBestSale  Boolean @default(false)
@@ -86,6 +89,9 @@ model Product {
 
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id])
+
+  userId      String?
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
 }
