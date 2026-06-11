@@ -7,59 +7,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  SUPER_ADMIN
+  USER
+}
+
 model User {
-  id        String   @id @default(uuid())
+  id   Int    @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
-  avatar    String?
 
+  role      Role     @default(USER)
+
+  avatar    String?
   phone     String?
   bio       String?
 
-  addresses Address[]
-
-  products  Product[]   // ADD THIS
+  orders     Order[]
+  addresses  Address[]
+  categories Category[]
+  products   Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
+
 model Address {
   id         String @id @default(uuid())
-  userId     String @unique   // ⭐ IMPORTANT FIX
+  userId     Int @unique
+
   country    String
   city       String
   postalCode String
   taxId      String?
 
   user       User   @relation(fields: [userId], references: [id])
-}
-
-model Admin {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("admin")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model Category {
-  id        String    @id @default(uuid())
-  name      String    @unique
+  id        String @id @default(uuid())
+  name      String
   icon      String
-  createdAt DateTime  @default(now())
+
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@unique([name, userId])
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
 
   name        String
-
   price       Float
   oldPrice    Float?
   discount    Float? @default(0)
@@ -79,32 +90,41 @@ model Product {
 
   badge       String?
 
-  image       String?
-
   images      ProductImage[]
 
   isFlashSale Boolean @default(false)
   isBestSale  Boolean @default(false)
   isExplore   Boolean @default(false)
 
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
 
-  userId      String?
-  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model ProductImage {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   url       String
 
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
+
 model Order {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
+
+  userId         Int
+  user           User @relation(fields: [userId], references: [id])
+
   firstName      String
   companyName    String?
   streetAddress  String
@@ -115,9 +135,11 @@ model Order {
 
   paymentMethod  String
   subtotal       Float
-  status         String   @default("Processing")
+  status         String @default("Processing")
 
   products       Json
 
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
 }
