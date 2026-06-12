@@ -3,7 +3,7 @@ import express from "express";
 import {
   login,
   loginAdmin,
-  registerAdmin,
+  // registerAdmin,
   sendOtp,
   verifyOtp,
 } from "../controllers/auth.controller";
@@ -25,7 +25,7 @@ router.post("/login", login);
 // ==========================
 // ADMIN ROUTES
 // ==========================
-router.post("/admin/register", registerAdmin);
+// router.post("/admin/register", registerAdmin);
 
 router.post("/admin/login", loginAdmin);
 

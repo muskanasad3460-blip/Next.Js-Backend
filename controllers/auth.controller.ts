@@ -176,28 +176,28 @@ export const login = asyncHandler(
 /* =========================
    ADMIN REGISTER
 ========================= */
-export const registerAdmin = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const { name, email, password } = req.body;
+// export const registerAdmin = asyncHandler(
+//   async (req: Request, res: Response): Promise<void> => {
+//     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      res.status(400).json({
-        success: false,
-        message: "Name, email, password required",
-      });
-      return;
-    }
+//     if (!name || !email || !password) {
+//       res.status(400).json({
+//         success: false,
+//         message: "Name, email, password required",
+//       });
+//       return;
+//     }
 
-    const admin = await service.registerAdmin(name, email, password);
+//     const admin = await service.registerAdmin(name, email, password);
 
-    res.status(201).json({
-      success: true,
-      admin,
-    });
+//     res.status(201).json({
+//       success: true,
+//       admin,
+//     });
 
-    return;
-  }
-);
+//     return;
+//   }
+// );
 
 /* =========================
    ADMIN LOGIN

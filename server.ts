@@ -19,19 +19,6 @@ import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
 
-// ✅ CORS
-// app.use(
-//   cors({
-//     origin: [
-//       "http://localhost:3000",
-//       "http://localhost:3001",
-//       "https://next-js-frontend-nu.vercel.app",
-//     ],
-//     // origin: "http://localhost:3000",
-//     credentials: true,
-//   })
-// );
-
 app.use(
   cors({
     origin: ["http://localhost:3000", "http://localhost:3001"],
@@ -39,13 +26,6 @@ app.use(
     credentials: true,
   })
 );
-
-// app.options(
-//   /.*/,
-//   cors({
-//     origin: "*",
-//   })
-// );
 
 // ✅ Middlewares
 app.use(express.json());

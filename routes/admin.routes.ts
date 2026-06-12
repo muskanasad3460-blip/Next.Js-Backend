@@ -1,4 +1,4 @@
-import express from "Express";
+import express from "express";
 import { protect } from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/admin.middleware";
 import { analytics } from "../controllers/admin.controller";
