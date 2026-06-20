@@ -1,13 +1,3 @@
-// import express from "express";
-// import { protect } from "../middleware/auth.middleware";
-// import { getAddress, upsertAddress } from "../controllers/address.controller";
-
-// const router = express.Router();
-
-// router.get("/", protect, getAddress);
-// router.put("/", protect, upsertAddress);
-
-// export default router;
 import express from "express";
 
 import { protect } from "../middleware/auth.middleware";
@@ -19,9 +9,9 @@ import { addressValidator } from "../validation/address.validation";
 const router = express.Router();
 
 // GET ADDRESS
-router.get("/", protect, getAddress);
+router.get("/", protect(), getAddress);
 
 // CREATE / UPDATE ADDRESS
-router.put("/", protect, addressValidator, validate, upsertAddress);
+router.put("/", protect(), addressValidator, validate, upsertAddress);
 
 export default router;

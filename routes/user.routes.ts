@@ -11,12 +11,12 @@ import { profileValidator } from "../validation/profile.validator";
 const router = express.Router();
 
 // GET PROFILE
-router.get("/me", protect, getProfile);
+router.get("/me", protect(), getProfile);
 
 // UPDATE PROFILE
 router.put(
   "/profile",
-  protect,
+  protect(),
   upload.single("avatar"),
   profileValidator,
   validate,

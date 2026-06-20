@@ -24,6 +24,7 @@ export const createOrder = async (req: Request, res: Response) => {
       });
       return;
     }
+    const userId = (req as any).user.id;
 
     const order = await prisma.order.create({
       data: {
@@ -36,7 +37,25 @@ export const createOrder = async (req: Request, res: Response) => {
         email: customer.email,
         paymentMethod,
         subtotal,
-        products,
+
+        orderItems: {
+          create: products.map((item: any) => ({
+            quantity: item.quantity || 1,
+            unitPrice: item.price,
+
+            product: {
+              connect: {
+                id: item.id,
+              },
+            },
+          })),
+        },
+
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
 
@@ -58,26 +77,42 @@ export const createOrder = async (req: Request, res: Response) => {
 // =========================
 // GET ALL ORDERS
 // =========================
-export const getOrders = async (req: Request, res: Response) => {
+export const getOrders = asyncHandler(async (req, res) => {
   try {
+    const userId = (req as any).user.id;
+
     const orders = await prisma.order.findMany({
+      where: {
+        userId: userId,
+      },
+
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
+      },
+
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    res.status(200).json({
-      success: true,
+    res.json({
       orders,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
-      success: false,
-      message: "Internal server error",
+      message: "Failed to fetch orders",
     });
   }
-};
-
+});
 // =========================
 // GET SINGLE ORDER
 // =========================
@@ -88,6 +123,18 @@ export const getSingleOrder = asyncHandler(
     const order = await prisma.order.findUnique({
       where: {
         id,
+      },
+
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -105,7 +152,6 @@ export const getSingleOrder = asyncHandler(
     });
   }
 );
-
 // =========================
 // DELETE ORDER
 // =========================

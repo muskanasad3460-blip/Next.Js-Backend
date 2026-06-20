@@ -1,22 +1,41 @@
 import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 
-export const protect = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
+export const protect =
+  (...roles: string[]): RequestHandler =>
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const token =
+        req.cookies?.token || req.headers.authorization?.split(" ")[1];
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "No token provided" });
+      if (!token) {
+        res.status(401).json({
+          success: false,
+          message: "No token provided",
+        });
+        return;
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+
+      (req as any).user = decoded;
+
+      if (roles.length > 0 && !roles.includes(decoded.role)) {
+        res.status(403).json({
+          success: false,
+          message: `Forbidden - Required roles: ${roles.join(", ")}`,
+        });
+        return;
+      }
+
+      next();
+    } catch (error: any) {
+      console.log("JWT ERROR:", error.message);
+
+      res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
+      return;
     }
-
-    const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-
-    (req as any).user = decoded;
-
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
-};
+  };

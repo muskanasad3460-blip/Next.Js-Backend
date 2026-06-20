@@ -45,28 +45,3 @@ export const updateProfile = asyncHandler(
     });
   }
 );
-// export const updateUser = async (req: Request, res: Response) => {
-//   const userId = (req as any).user.id;
-
-//   const { name, email, phone, bio } = req.body;
-
-//   const image = req.file?.filename
-//     ? `/uploads/${req.file.filename}`
-//     : undefined;
-
-//   const updated = await prisma.user.update({
-//     where: { id: userId },
-//     data: {
-//       name,
-//       email,
-//       phone,
-//       bio,
-//       avatar: image || undefined,
-//     },
-//   });
-
-//   res.json({
-//     success: true,
-//     user: updated,
-//   });
-// };

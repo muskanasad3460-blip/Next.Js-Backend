@@ -8,8 +8,6 @@ import {
   getFlashSaleProducts,
   getBestSellingProducts,
   getExploreProducts,
-  // getMyProducts,
-  // seedProducts,
 } from "../controllers/product.controller";
 
 import { upload } from "../middleware/upload";
@@ -17,22 +15,38 @@ import { protect } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
-router.delete("/:id", protect, deleteProduct);
-// router.post("/", upload.array("images", 10), createProduct);
-router.post("/", upload.array("images", 10), createProduct);
-router.put("/:id", upload.array("images", 10), updateProduct);
+/**
+ * IMPORTANT: specific routes FIRST
+ */
 
-// router.put("/:id", upload.array("images", 10), updateProduct);
-
-router.get("/", getProducts);
-// router.get("/my-products", protect, getMyProducts);
-
+// FILTER ROUTES
 router.get("/flash-sale", getFlashSaleProducts);
 router.get("/best-selling", getBestSellingProducts);
 router.get("/explore", getExploreProducts);
 
+/**
+ * GET ALL PRODUCTS
+ */
+router.get("/", getProducts);
+
+/**
+ * GET SINGLE PRODUCT
+ */
 router.get("/:id", getProduct);
 
-// router.delete("/:id", deleteProduct);
+/**
+ * CREATE PRODUCT
+ */
+router.post("/", protect(), upload.array("images", 10), createProduct);
+
+/**
+ * UPDATE PRODUCT
+ */
+router.put("/:id", protect(), upload.array("images", 10), updateProduct);
+
+/**
+ * DELETE PRODUCT
+ */
+router.delete("/:id", protect(), deleteProduct);
 
 export default router;

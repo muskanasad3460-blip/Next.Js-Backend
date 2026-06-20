@@ -13,12 +13,15 @@ call login api with createApiClient and save token in localstorage and move user
 Fix the protected routes ability. Which means if user is logged in (token exist in localstroage) , User should not be able to access /login page. And if user is not logged in, user should not be able to access any dashboard route other than login
 Fix get profile api and make it working properly by using getApiClient
 
-Add user foreign key in Category table
-Add user foreign key in Product table
-Add user foreign key in Orders table
+<!-- Fixed above -->
 
+Redesing my profile page on admin
+Add user foreign key in Category table
+Move products and category create/edit form inside a drawer
+Fix orders table and add products foreging key in orders table instead of json
 remove image column and always use images for both multiple and single product image
 In every table add createdAt, updatedAt, deletedAt (Add support for soft delete for all tables). Also learn soft delete and hard delete concept in software engineering
+Question: Why we need soft delete in our project. What will be the issue if we allow hard delete everywhere. (HTIN: Orders module)
 Fix product foreign key data type in product images table
 Currently all orders are showign for all users even if they do not belong to that user. This is a data privacy case
 This data should not be saved in user orders table . 2

@@ -350,25 +350,25 @@
 //   // ======================
 //   // ADMIN REGISTER
 //   // ======================
-//   async registerAdmin(name: string, email: string, password: string) {
-//     const exists = await prisma.admin.findUnique({
-//       where: { email },
-//     });
+// async registerAdmin(name: string, email: string, password: string) {
+//   const exists = await prisma.admin.findUnique({
+//     where: { email },
+//   });
 
-//     if (exists) {
-//       throw new ApiError(400, "Admin already exists");
-//     }
-
-//     const hash = await bcrypt.hash(password, 10);
-
-//     return prisma.admin.create({
-//       data: {
-//         name,
-//         email,
-//         password: hash,
-//       },
-//     });
+//   if (exists) {
+//     throw new ApiError(400, "Admin already exists");
 //   }
+
+//   const hash = await bcrypt.hash(password, 10);
+
+//   return prisma.admin.create({
+//     data: {
+//       name,
+//       email,
+//       password: hash,
+//     },
+//   });
+// }
 
 //   // ======================
 //   // ADMIN LOGIN
@@ -518,6 +518,25 @@ export class AuthService {
       },
       token,
     };
+  }
+  async registerAdmin(name: string, email: string, password: string) {
+    const exists = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (exists) {
+      throw new ApiError(400, "Admin already exists");
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    return prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hash,
+      },
+    });
   }
 
   // ======================

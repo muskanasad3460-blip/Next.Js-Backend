@@ -37,8 +37,8 @@ app.use("/uploads", express.static("uploads"));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 // ✅ Routes (CLEAN STRUCTURE)
-// app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -46,8 +46,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api", orderRoutes);
 
 app.use("/api/address", addressRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api", adminRoutes);
 
 // ✅ Error handler LAST
 app.use(errorHandler);

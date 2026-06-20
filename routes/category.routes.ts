@@ -4,7 +4,6 @@ import {
   deleteCategory,
   getCategories,
   updateCategory,
-  getCategoryProducts,
   seedCategories,
 } from "../controllers/category.controller";
 
@@ -14,7 +13,6 @@ const router = express.Router();
 router.post("/seed", seedCategories);
 
 // CATEGORY PRODUCTS
-router.get("/:id/products", getCategoryProducts);
 // CRUD
 router.post("/", createCategory);
 
