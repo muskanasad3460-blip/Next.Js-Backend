@@ -130,34 +130,6 @@ export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /* =========================
-    LOGIN USER (COOKIE)
-  ========================= */
-export const login = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  const data = await service.loginUser(email, password);
-
-  const token = jwt.sign(
-    {
-      id: data.user.id,
-      email: data.user.email,
-      role: data.user.role,
-      type: "user",
-    },
-    process.env.JWT_SECRET!,
-    { expiresIn: "1d" }
-  );
-
-  // ✅ COOKIE SET
-  res.cookie("token", token, cookieOptions);
-
-  res.status(200).json({
-    success: true,
-    user: data.user,
-  });
-});
-
-/* =========================
     ADMIN REGISTER (COOKIE OPTIONAL)
   ========================= */
 export const registerAdmin = asyncHandler(
@@ -181,31 +153,47 @@ export const registerAdmin = asyncHandler(
   }
 );
 
-/* =========================
-    ADMIN LOGIN (COOKIE)
-  ========================= */
-export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
+export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const data = await service.loginAdmin(email, password);
+  let user: any;
+  let type = "";
+
+  try {
+    // Try admin
+    const data = await service.loginAdmin(email, password);
+    user = data.admin;
+    type = "admin";
+  } catch {
+    try {
+      // Try vendor
+      const data = await service.loginVendor(email, password);
+      user = data.vendor;
+      type = "vendor";
+    } catch {
+      // Try normal user
+      const data = await service.loginUser(email, password);
+      user = data.user;
+      type = "user";
+    }
+  }
 
   const token = jwt.sign(
     {
-      id: data.admin.id,
-      email: data.admin.email,
-      role: data.admin.role,
-      type: "admin",
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      type,
     },
     process.env.JWT_SECRET!,
     { expiresIn: "1d" }
   );
 
-  // ✅ COOKIE SET
   res.cookie("token", token, cookieOptions);
 
   res.status(200).json({
     success: true,
-    user: data.admin,
+    user,
   });
 });
 

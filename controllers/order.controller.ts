@@ -10,20 +10,19 @@ export const createOrder = async (req: Request, res: Response) => {
     const { customer, paymentMethod, products, subtotal } = req.body;
 
     if (!customer?.firstName?.trim()) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "First name is required",
       });
-      return;
     }
 
     if (!products || products.length === 0) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "No products found",
       });
-      return;
     }
+
     const userId = (req as any).user.id;
 
     const order = await prisma.order.create({
@@ -61,204 +60,364 @@ export const createOrder = async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      message: "Order placed successfully",
       order,
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
 
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal Server Error",
     });
   }
 };
 
 // =========================
-// GET ALL ORDERS
+// GET ORDERS
 // =========================
-export const getOrders = asyncHandler(async (req, res) => {
-  try {
-    const userId = (req as any).user.id;
+export const getOrders = asyncHandler(async (req: any, res) => {
+  const user = req.user;
 
+  // CUSTOMER
+  if (user.role === "USER") {
     const orders = await prisma.order.findMany({
       where: {
-        userId: userId,
+        userId: user.id,
       },
-
       include: {
         orderItems: {
           include: {
             product: {
               include: {
                 images: true,
+                category: true,
               },
             },
           },
         },
       },
-
       orderBy: {
         createdAt: "desc",
       },
     });
 
     res.json({
+      success: true,
       orders,
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Failed to fetch orders",
-    });
+    return;
   }
-});
-// =========================
-// GET SINGLE ORDER
-// =========================
-export const getSingleOrder = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const id = req.params.id as string;
 
-    const order = await prisma.order.findUnique({
-      where: {
-        id,
-      },
-
+  // SUPER ADMIN
+  if (user.role === "SUPER_ADMIN") {
+    const orders = await prisma.order.findMany({
       include: {
+        user: true,
         orderItems: {
           include: {
             product: {
               include: {
                 images: true,
+                category: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json({
+      success: true,
+      orders,
+    });
+    return;
+  }
+
+  // VENDOR
+  const orders = await prisma.order.findMany({
+    where: {
+      orderItems: {
+        some: {
+          product: {
+            userId: user.id,
+          },
+        },
+      },
+    },
+    include: {
+      user: true,
+      orderItems: {
+        where: {
+          product: {
+            userId: user.id,
+          },
+        },
+        include: {
+          product: {
+            include: {
+              images: true,
+              category: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  res.json({
+    success: true,
+    orders,
+  });
+});
+
+// =========================
+// GET SINGLE ORDER
+// =========================
+export const getSingleOrder = asyncHandler(async (req: any, res) => {
+  const user = req.user;
+  const id = req.params.id;
+
+  let order;
+
+  if (user.role === "SUPER_ADMIN") {
+    order = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: true,
+                category: true,
               },
             },
           },
         },
       },
     });
-
-    if (!order) {
-      res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      order,
+  } else if (user.role === "VENDOR") {
+    order = await prisma.order.findFirst({
+      where: {
+        id,
+        orderItems: {
+          some: {
+            product: {
+              userId: user.id,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+        orderItems: {
+          where: {
+            product: {
+              userId: user.id,
+            },
+          },
+          include: {
+            product: {
+              include: {
+                images: true,
+                category: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    order = await prisma.order.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: true,
+                category: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
-);
+
+  if (!order) {
+    res.status(404).json({
+      success: false,
+      message: "Order not found",
+    });
+    return;
+  }
+
+  res.json({
+    success: true,
+    order,
+  });
+});
+
 // =========================
 // DELETE ORDER
 // =========================
-export const deleteOrder = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string;
+export const deleteOrder = asyncHandler(async (req: any, res) => {
+  const user = req.user;
+  const id = req.params.id;
 
-    const existingOrder = await prisma.order.findUnique({
-      where: { id },
-    });
-
-    if (!existingOrder) {
-      res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-      return;
-    }
-
-    await prisma.order.delete({
-      where: {
-        id,
+  const order = await prisma.order.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      orderItems: {
+        include: {
+          product: true,
+        },
       },
-    });
+    },
+  });
 
-    res.status(200).json({
-      success: true,
-      message: "Order deleted successfully",
-    });
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({
+  if (!order) {
+    res.status(404).json({
       success: false,
-      message: "Internal server error",
+      message: "Order not found",
     });
+    return;
   }
-};
+
+  if (user.role !== "SUPER_ADMIN") {
+    res.status(403).json({
+      success: false,
+      message: "Only admin can delete orders",
+    });
+    return;
+  }
+
+  await prisma.order.delete({
+    where: {
+      id,
+    },
+  });
+
+  res.json({
+    success: true,
+    message: "Order deleted successfully",
+  });
+});
 
 // =========================
 // CANCEL ORDER
 // =========================
-export const cancelOrder = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string;
+export const cancelOrder = asyncHandler(async (req: any, res) => {
+  const id = req.params.id;
+  const user = req.user;
 
-    const order = await prisma.order.findUnique({
-      where: { id },
-    });
+  const order = await prisma.order.findUnique({
+    where: {
+      id,
+    },
+  });
 
-    if (!order) {
-      res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-      return;
-    }
-
-    if (order.status === "Delivered") {
-      res.status(400).json({
-        success: false,
-        message: "Cannot cancel delivered order",
-      });
-      return;
-    }
-
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        status: "Cancelled",
-      },
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Order cancelled",
-      order: updated,
-    });
-  } catch (error) {
-    res.status(500).json({
+  if (!order) {
+    res.status(404).json({
       success: false,
-      message: "Server error",
+      message: "Order not found",
     });
+    return;
   }
-};
+
+  if (user.role === "USER" && order.userId !== user.id) {
+    res.status(403).json({
+      success: false,
+      message: "Forbidden",
+    });
+    return;
+  }
+
+  if (order.status === "Delivered") {
+    res.status(400).json({
+      success: false,
+      message: "Cannot cancel delivered order",
+    });
+    return;
+  }
+
+  const updated = await prisma.order.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "Cancelled",
+    },
+  });
+
+  res.json({
+    success: true,
+    order: updated,
+  });
+});
 
 // =========================
 // UPDATE STATUS
 // =========================
-export const updateOrderStatus = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const id = req.params.id as string;
-    const { status } = req.body;
+export const updateOrderStatus = asyncHandler(async (req: any, res) => {
+  const id = req.params.id;
+  const { status } = req.body;
+  const user = req.user;
 
-    const order = await prisma.order.update({
+  if (user.role === "USER") {
+    res.status(403).json({
+      success: false,
+      message: "Forbidden",
+    });
+    return;
+  }
+
+  if (user.role === "VENDOR") {
+    const owns = await prisma.order.findFirst({
       where: {
         id,
-      },
-      data: {
-        status,
+        orderItems: {
+          some: {
+            product: {
+              userId: user.id,
+            },
+          },
+        },
       },
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Order status updated",
-      order,
-    });
+    if (!owns) {
+      res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
+      return;
+    }
   }
-);
+
+  const order = await prisma.order.update({
+    where: {
+      id,
+    },
+    data: {
+      status,
+    },
+  });
+
+  res.json({
+    success: true,
+    order,
+  });
+});

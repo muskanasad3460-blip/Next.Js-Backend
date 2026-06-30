@@ -14,6 +14,7 @@ import categoryRoutes from "./routes/category.routes";
 import orderRoutes from "./routes/order.routes";
 import addressRoutes from "./routes/address.routes";
 import adminRoutes from "./routes/admin.routes";
+import vendorRoutes from "./routes/vendor.routes";
 
 import { errorHandler } from "./middleware/error.middleware";
 
@@ -39,6 +40,7 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 // ✅ Routes (CLEAN STRUCTURE)
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+// app.use("/api/vendor", vendorRoutes);
 
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -46,6 +48,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", orderRoutes);
 
 app.use("/api/address", addressRoutes);
+app.use("/api/vendors", vendorRoutes);
 
 // ✅ Error handler LAST
 app.use(errorHandler);

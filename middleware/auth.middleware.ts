@@ -6,7 +6,10 @@ export const protect =
   (req: Request, res: Response, next: NextFunction) => {
     try {
       const token =
-        req.cookies?.token || req.headers.authorization?.split(" ")[1];
+        req.cookies?.admin_token ||
+        req.cookies?.vendor_token ||
+        req.cookies?.user_token ||
+        req.headers.authorization?.split(" ")[1];
 
       if (!token) {
         res.status(401).json({

@@ -2,7 +2,8 @@ import express from "express";
 
 import {
   login,
-  loginAdmin,
+  // loginAdmin,
+  // loginVendor,
   logoutUser,
   registerAdmin,
   // registerAdmin,
@@ -23,13 +24,14 @@ router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
 
 router.post("/login", login);
+// router.post("/vendor/login", loginVendor);
 
 // ==========================
 // ADMIN ROUTES
 // ==========================
 router.post("/admin/register", registerAdmin);
 
-router.post("/admin/login", loginAdmin);
+// router.post("/admin/login", loginAdmin);
 
 // ==========================
 // ADMIN PROTECTED
